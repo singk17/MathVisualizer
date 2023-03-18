@@ -1,0 +1,26 @@
+.add {
+    background-color: rgb(179, 173, 173);
+    color: red;
+    border: none;
+    cursor: pointer;
+    margin-right: 20px;
+    transition: background-color 1s ; 
+}
+
+.add:hover {
+    background-color: rgb(127, 123, 123)
+}
+
+.zoom {
+    border-radius: 50%;
+    border-color: white; 
+    border-style: solid;
+    cursor: pointer;
+}
+
+.settings{
+    border-radius: 50%;
+    border-color: white; 
+    border-style: solid;
+    cursor: pointer;
+}

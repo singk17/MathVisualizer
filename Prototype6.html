@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            test
+        </title>
+        <link rel="stylesheet" href="styles/buttons.css">
+        <style>
+            .Matrix-section,
+            .Vector-section{
+                vertical-align: top;  
+            }
+            .Matrices{
+                background-color: pink;
+            }
+
+            .M_title,
+            .V_title,
+            .more,
+            .Matrix,
+            .Vector,
+            .Show,
+            .Checkbox,
+            .M_name,
+            .V_name,
+            .assignment,
+            .open-bracket,
+            .input,
+            .close-bracket{
+                display: inline-block;
+            }
+            .name{
+                width: 22px;
+            }
+            .bracket{
+                font-size: 100px;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+            .m_inputA,
+            .m_inputB,
+            .m_inputC,
+            .m_inputD{
+                width: 22px;
+            }
+            .Vectors{
+                background-color:rgb(127, 240, 255);
+            }
+            .Graph{
+                width: 100px;
+                border-color: black;
+                display: inline-block;
+                vertical-align: top;
+                position: absolute;
+                right: 0;
+            }
+            
+            .V_title{
+                display: inline-block;
+            }
+            .vector{
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 100px;
+            }
+            .v_inputA,
+            .v_inputB{
+                display: block;
+                width: 22px;
+            } 
+        </style>
+    </head>
+
+    <body>
+        <div style="
+            display: grid;
+            grid-template-columns:250px 250px 1fr ">
+            <div class="Matrix-section">
+                <div class="matrix-header">
+                    <div class="M_title">
+                        <p >
+                            Matrices
+                        </p>
+                    </div>
+                    <div class="more" style="margin-left: 155px;" >
+                        <button class="add">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="Matrices">
+                    <div class="Matrix">
+                        <div class="M_name">
+                            <input class="name" type="text" placeholder="A"> 
+                        </div>
+                        <div class="assignment">
+                            <p>
+                                =
+                            </p>
+                        </div>
+                        <div class="open-bracket">
+                            <p class="bracket">
+                                &#91
+                            </p>
+                        </div>
+                        <div class="input">
+                            <div class="up_row">
+                                <input class="m_inputA" type="number" placeholder="a">
+                                <input class="m_inputB" type="number" placeholder="b">
+                            </div>
+                            <div class="down_row">
+                                <input class="m_inputC" type="number" placeholder="c">
+                                <input class="m_inputD" type="number" placeholder="d">
+                            </div>
+                        </div>
+                        <div class="close-bracket">
+                            <p class="bracket">
+                                &#93
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="Show">
+                        <p>
+                            Show
+                        </p>
+                    </div>
+
+                    <div class="Checkbox">
+                        <input type="checkbox"> 
+                    </div>    
+                </div>
+            </div>
+
+            <div class="Vector-section">
+                <div class="vector-header">
+                    <div class="V_title">
+                        <p >
+                            Vectors
+                        </p>
+                    </div>
+                    <div class="more" style="margin-left: 155px;">
+                        <button class="add">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="Vectors">
+                    <div class="Vector">
+                        <div class="V_name">
+                            <input class="name" type="text" placeholder="A"> 
+                        </div>
+                        <div class="assignment">
+                            <p>
+                                =
+                            </p>
+                        </div>
+                        <div class="open-bracket">
+                            <p class="bracket">
+                                &#91
+                            </p>
+                        </div>
+                        <div class="input">
+                            <input class="v_inputA" type="number" placeholder="a">
+                            <input class="v_inputB" type="number" placeholder="b">
+                        </div>
+                        <div class="close-bracket">
+                            <p class="bracket">
+                                &#93
+                            </p>
+                        </div>
+                    </div>
+                    <div class="Show">
+                        <p>
+                            Show
+                        </p>
+                    </div>
+                    <div class="Checkbox">
+                        <input type="checkbox"> 
+                    </div>
+                </div>
+            </div>
+
+            <div class="Graph">
+                <button class="zoom">
+                    +
+                </button>
+                <button class="zoom">
+                    -
+                </button>
+                <button class="settings">
+                    H
+                </button>
+            </div>
+        </div>
+    </body>
+</html>
+
+<!-- add css transition in zoom and settings button 
+    <a href = target = _ blank (new tab)>Instructions</a> is an anchor tag -->
