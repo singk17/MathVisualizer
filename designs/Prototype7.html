@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Visualizer</title>
+    <style>
+        body {
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div
+        style=" display: flex;
+                flex-direction: row;
+                height: 100vh;
+                width: 100vw"
+        >
+        <!-- Matrices -->
+        <div style="width: fit-content;
+                    background-color: #ffc0cb;">
+            <div
+                style=" display: flex;
+                        padding: 10px;
+                        flex-direction: row;
+                        align-content: center;
+                        align-items: center;">
+                <h1>Matrices</h1>
+                <button style="height: 20px; margin-left: 10px">
+                    +
+                </button>
+            </div>
+
+            <div
+                style=" display: flex;
+                        flex-direction: column;
+                        padding: 5px;
+                        background: #E9798D;
+                        margin: 5px;"
+                        >
+                <div>
+                    <input size="3" type="text" placeholder="Name">
+                </div>
+
+                <div style="display: flex; flex-direction: row; margin-top: 4px; justify-content: center;">
+                    <div style="width: 10px;
+                                align-self: strech;
+                                border-top: 3px solid black;
+                                border-bottom: 3px solid black;
+                                border-left: 6px solid black;"
+                                >
+                    </div>
+
+                    <div style="margin: 4px;
+                                display: grid;
+                                grid-template-columns: 40px 40px;
+                                columns: 2;
+                                column-gap: 10px"
+                                >
+                        <input type="number" placeholder="a">
+                        <input type="number" placeholder="b">
+                        <input type="number" placeholder="c">
+                        <input type="number" placeholder="d">
+                    </div>
+
+                    <div style="width: 10px;
+                                align-self: strech;
+                                border-top: 3px solid black;
+                                border-bottom: 3px solid black;
+                                border-right: 6px solid black;"
+                                >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vectors -->
+        <div style="width: fit-content;
+                    background-color: #7ff0ff;">
+            <div
+                style=" display: flex;
+                        padding: 10px;
+                        flex-direction: row;
+                        align-content: center;
+                        align-items: center;">
+                <h1>Vectors</h1>
+                <button style="height: 20px; margin-left: 10px">
+                    +
+                </button>
+            </div>
+
+            <div
+                style=" display: flex;
+                        flex-direction: column;
+                        padding: 5px;
+                        background: #27a1b2;
+                        margin: 5px;"
+                        >
+                <div style="display: flex;
+                            flex-direction: row;
+                            justify-content: space-between;"
+                            >
+                    <input size="3" type="text" placeholder="Name">
+                    <div style="background: #7ff0ff; padding: 4px;">
+                        <spanp>Plot</spanp>
+                        <input size="1" type="checkbox" style="align-self: bottom">
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: row; margin-top: 4px; justify-content: center;">
+                    <div style="width: 10px;
+                                align-self: strech;
+                                border-top: 3px solid black;
+                                border-bottom: 3px solid black;
+                                border-left: 6px solid black;"
+                                >
+                    </div>
+
+
+                    <div style="margin: 4px;
+                                display: grid;
+                                grid-template-columns: 40px;
+                                columns: 1;
+                                column-gap: 10px;"
+                                >
+                        <input type="number" placeholder="a">
+                        <input type="number" placeholder="b">
+                        </div>
+
+                    <div style="width: 10px;
+                                align-self: strech;
+                                border-top: 3px solid black;
+                                border-bottom: 3px solid black;
+                                border-right: 6px solid black;"
+                                >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph -->
+        <div style="width: 100%; background: yellow;"></div>
+
+        <!-- Settings Stuff -->
+        <div style="width: 40px; background: yellow;" >
+            <div style="display: flex; justify-content: center; margin-top: 10px;">
+                <button style="width: 100%;">
+                    &lt;
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
