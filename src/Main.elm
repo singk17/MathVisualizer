@@ -32,6 +32,8 @@ type alias Model = {
     , vectorEntries : List VectorEntry
     , windowSize : (Int,Int)
     , effectiveMatrix : C.Matrix
+    , effectiveIdx : Int
+    , showOptions : Bool
   }
 
 type Msg =  WindowResize Int Int
@@ -47,7 +49,9 @@ type Msg =  WindowResize Int Int
           | EditVectorName Int String
           | EditVectorFloat Int C.VectorField Float
 
-          | UpdateEffective
+          | UpdateEffective Int
+
+          | ToggleOptionsModal
 
           | Unused
 
@@ -68,9 +72,12 @@ emptyVectorEntry = { name = Nothing, vector = Nothing, plot = False }
 initialModel : Model
 initialModel = {
       windowSize = (0,0)
-    , matrixEntries = []
-    , vectorEntries = []
+    , matrixEntries = [ emptyMatrixEntry ]
+    , vectorEntries = [ emptyVectorEntry ]
     , effectiveMatrix = C.identityMatrix
+    , effectiveIdx = -1
+
+    , showOptions = False
   }
 
 editMatrixField : C.MatrixField -> Float -> Maybe C.Matrix -> Maybe C.Matrix
@@ -87,6 +94,9 @@ editVectorField f v ma =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
+  let
+    ti = Debug.log "Update MSG" msg
+  in
   Debug.log "UpdateOccurred" <| case msg of
     WindowResize w h ->
       ({ model | windowSize = Debug.log "WS" (w,h) }, Cmd.none)
@@ -94,33 +104,43 @@ update msg model =
       (model, Cmd.none)
 
     NewMatrixEntry ->
-      { model | matrixEntries = model.matrixEntries ++ [emptyMatrixEntry] } |> update UpdateEffective
+      { model | matrixEntries = model.matrixEntries ++ [emptyMatrixEntry] } |> update (UpdateEffective model.effectiveIdx)
     DeleteMatrixEntry idx ->
-      { model | matrixEntries = U.removeAt idx model.matrixEntries} |> update UpdateEffective
+      let
+        newEffec =  if (idx == model.effectiveIdx) then
+                      -1
+                    else if (model.effectiveIdx < idx) then
+                      model.effectiveIdx
+                    else
+                      model.effectiveIdx - 1
+      in
+      { model | matrixEntries = U.removeAt idx model.matrixEntries} |> update (UpdateEffective newEffec)
     EditMatrixName idx newName ->
-      { model | matrixEntries = U.updateAt idx (\x -> { x | name = Just newName }) model.matrixEntries } |> update UpdateEffective
+      { model | matrixEntries = U.updateAt idx (\x -> { x | name = Just newName }) model.matrixEntries } |> update (UpdateEffective model.effectiveIdx)
     EditMatrixFloat idx field val ->
-      { model | matrixEntries = U.updateAt idx (\x -> { x | matrix = editMatrixField field val x.matrix }) model.matrixEntries } |> update UpdateEffective
+      { model | matrixEntries = U.updateAt  idx (\x -> { x | matrix = editMatrixField field val x.matrix }) model.matrixEntries } |> update (UpdateEffective model.effectiveIdx)
 
     NewVectorEntry ->
       ({ model | vectorEntries = model.vectorEntries ++ [emptyVectorEntry] }, Cmd.none)
     DeleteVectorEntry idx ->
       ({ model | vectorEntries = U.removeAt idx model.vectorEntries }, Cmd.none)
     EditVectorName idx newName ->
-      ({ model | vectorEntries =Debug.log "UVN" <| U.updateAt idx (\x -> { x | name = Just newName }) model.vectorEntries }, Cmd.none)
+      ({ model | vectorEntries = U.updateAt idx (\x -> { x | name = Just newName }) model.vectorEntries }, Cmd.none)
     EditVectorFloat idx field val ->
-      ({ model | vectorEntries = Debug.log "UVF" <| U.updateAt idx (\x -> { x | vector = editVectorField field val x.vector }) model.vectorEntries }, Cmd.none)
+      ({ model | vectorEntries = U.updateAt idx (\x -> { x | vector = editVectorField field val x.vector }) model.vectorEntries }, Cmd.none)
     
-    UpdateEffective ->
+    UpdateEffective idx ->
       let
-        nEffec =  if (List.isEmpty model.matrixEntries) then
+        nEffec =  if (List.isEmpty model.matrixEntries || idx < 0 || idx > List.length model.matrixEntries) then
                     C.identityMatrix
                   else
-                    case (U.actHead model.matrixEntries |> .matrix) of
+                    case (U.elem idx model.matrixEntries |> .matrix) of
                         Just m -> m
                         Nothing -> C.identityMatrix
       in
-      ({ model | effectiveMatrix = nEffec }, Cmd.none)
+      ({ model | effectiveMatrix = nEffec, effectiveIdx = idx }, Cmd.none)
+    ToggleOptionsModal ->
+      ({model | showOptions = not model.showOptions }, Cmd.none)
     _ -> (model,Cmd.none)
 
 -- #endregion
@@ -235,6 +255,12 @@ vOutput = Widget.init 500 900 svgTitle
 wModel = Tuple.first vOutput
 sCmd = Tuple.second vOutput
 
+inputSectionWidth = 190
+entryNodeWidth = 135
+optionsBtnWidth = 40
+notgraphsize = 2 * inputSectionWidth + optionsBtnWidth
+
+
 matrixEntryNode : Int -> MatrixEntry -> H.Html Msg
 matrixEntryNode idx ma =
   let
@@ -253,6 +279,7 @@ matrixEntryNode idx ma =
     , padding 5 PX
     , A.style "background" "#E9798D"
     , margin 5 PX
+    , width entryNodeWidth PX
   ] [
       H.div [
           flex
@@ -311,12 +338,12 @@ matrixEntryNode idx ma =
 vectorEntryNode : Int -> VectorEntry -> H.Html Msg
 vectorEntryNode idx va =
   let
-    nma = va.name /= Nothing |> Debug.log "nma"
-    na = Debug.log "na" <| case va.name of
+    nma = va.name /= Nothing
+    na = case va.name of
             Just q -> q
             Nothing -> ""
-    vma = va.vector /= Nothing |> Debug.log "vma"
-    vec = Debug.log "xy" <| case va.vector of
+    vma = va.vector /= Nothing
+    vec = case va.vector of
               Just q -> q
               Nothing -> (0,0)
   in
@@ -326,6 +353,7 @@ vectorEntryNode idx va =
     , padding 5 PX
     , A.style "background" "#27a1b2"
     , margin 5 PX
+    , width entryNodeWidth PX
   ] [
       H.div [
           flex
@@ -401,6 +429,18 @@ vectorEntryNode idx va =
       ]
   ]
 
+createMatrixSelectionOptions : Int -> List MatrixEntry -> List (H.Html Msg)
+createMatrixSelectionOptions selected entries = 
+  List.indexedMap
+    ( \idx v ->
+        H.option [
+            A.value <| String.fromInt idx
+          , A.selected <| selected == idx
+        ]
+        [ H.text <| U.enforceJust v.name ]
+    )
+  <| List.filter (.name >> (/=) Nothing) <| List.filter (.matrix >> (/=) Nothing) entries
+
 gap = 30
 
 arrow : S.Shape a
@@ -418,10 +458,13 @@ createVectorEntries ves eff =
           vec = U.enforceJust v.vector
           scVec = C.vecscale gap vec |> C.matvecmul eff
           theta = case (C.toPolar scVec) of C.Polar r the -> the
+          nam = if v.name == Nothing then "" else U.enforceJust v.name
+          head = if ((==) (0,0) <| scVec) then S.circle 6 |> S.filled S.red else arrow |> S.rotate theta |> S.move scVec
         in
         S.group [
             S.line (0,0) scVec |> S.outlined (S.solid 4) S.red
-          , arrow |> S.rotate theta |> S.move scVec
+          , head
+          , S.text nam |> S.size  20|> S.filled S.red |> S.move scVec
         ]
     )
   actualVectors
@@ -449,12 +492,12 @@ graphView : Model -> List (S.Shape a)
 graphView model =
   let
     (ww,wh) = model.windowSize
-    (w,h) = (ww-330,wh)
-    xHalf = Debug.log "xhalf" (w // 2)
-    xUH = xHalf |> toFloat |> \x -> x / gap |> ceiling |> (+) 3
+    (w,h) = (ww-notgraphsize,wh)
+    xHalf = (w // 2)
+    xUH = xHalf |> toFloat |> \x -> x / gap |> ceiling |> (+) 7
     xOHalf = xUH * gap |> toFloat
-    yHalf = Debug.log "yhalf" (h // 2)
-    yUH = yHalf |> toFloat |> \y -> y / gap |> ceiling |> (+) 3
+    yHalf = (h // 2)
+    yUH = yHalf |> toFloat |> \y -> y / gap |> ceiling |> (+) 7
     yOHalf = yUH * gap |> toFloat
   in
   [
@@ -486,68 +529,125 @@ view model = {
               , numStyle "maxWidth" 100 VW
               , A.style "overflow" "hidden"
           ] [
-                -- Matrices 
+                -- Input stuff
                 H.div [
-                    A.style "width" "fit-content"
-                  , A.style "background" "#ffc0cb"
+                    flex
+                  , flexDirection col
                 ] [
                     H.div [
                         flex
                       , flexDirection row
-                      , padding 10 PX
-                      , A.style "align-content" "center"
-                      , A.style "align-items" "center"
+                      , A.style "height" "calc(100vh - 150px)"
                     ] [
-                        H.h1 [] [
-                            H.text "Matrices"
-                        ]
-                      , H.button [
-                            height 20 PX
-                          , marginLeft 10 PX
-                          , Events.onClick NewMatrixEntry
+                        -- #region Matrix
+                        H.div [
+                            width inputSectionWidth PX
+                          , A.style "max-height" "100%"
+                            --A.style "width" "190px"
+                          , A.style "background" "#ffc0cb"
+                          , padding 10 PX
+                          , flex
+                          , flexDirection col
                         ] [
-                          H.text "+"
+                            H.div [
+                                flex
+                              , flexDirection row
+                              , padding 10 PX
+                              , A.style "align-content" "center"
+                              , A.style "align-items" "center"
+                              , A.style "justify-content" "space-between"
+                            ] [
+                                H.h1 [] [
+                                    H.text "Matrices"
+                                ]
+                              , H.button [
+                                    height 20 PX
+                                  , marginLeft 10 PX
+                                  , Events.onClick NewMatrixEntry
+                                ] [
+                                  H.text "+"
+                                ]
+                            ]
+                          , H.div [
+                                flex
+                              , flexDirection col
+                              , A.style "overflow-y" "auto"
+                            ] <| List.indexedMap matrixEntryNode  model.matrixEntries
                         ]
+                      -- #endregion
+
+                      -- #region Vectors
+                      ,  H.div [
+                            width inputSectionWidth PX
+                          , A.style "max-height" "100%"
+                            --A.style "width" "fit-content"
+                          , A.style "background" "#7ff0ff"
+                          , padding 10 PX
+                          , flex
+                          , flexDirection col
+                        ] [
+                            H.div [
+                                flex
+                              , flexDirection row
+                              , padding 10 PX
+                              , A.style "align-content" "center"
+                              , A.style "align-items" "center"
+                              , A.style "justify-content" "space-between"
+                            ] [
+                                H.h1 [] [
+                                    H.text "Vectors"
+                                ]
+                              , H.button [
+                                    height 20 PX
+                                  , marginLeft 10 PX
+                                  , Events.onClick NewVectorEntry
+                                ] [
+                                  H.text "+"
+                                ]
+                            ]
+                          , H.div [
+                                flex
+                              , flexDirection col
+                              , A.style "overflow-y" "auto"
+                            ] <| List.indexedMap vectorEntryNode model.vectorEntries 
+                        ]
+                      -- #endregion
                     ]
                   , H.div [
-                        flex
-                      , flexDirection col
-                    ] <| List.indexedMap matrixEntryNode  model.matrixEntries
+                        A.style "background" "#ccaabb"
+                      , width 100 PC
+                      , A.style "max-width" "100%"
+                      , A.style "flex" "1"
+                    ] [
+                        H.div [
+                            margin 10 PX
+                          , flex
+                          , flexDirection col
+                          , A.style "justify-content" "center"
+                          , A.style "align-items" "center"
+                        ] [
+                              H.h3 [ A.style "text-align" "center" ] [
+                                H.text "Effective Matrix:"
+                              ]
+
+                            , H.div [] [
+                                H.select [
+                                    width 120 PX
+                                  , Events.onInput (String.toInt >> U.enforceJust >> UpdateEffective)
+                                  , A.style "font-size" "18px"
+                                ]
+                                <|  H.option [ A.value "-1" ] [ H.text "---" ]
+                                    :: createMatrixSelectionOptions model.effectiveIdx model.matrixEntries
+                              ]
+                        ]
+                    ]
                 ]
               
-              -- Vectors
-              ,  H.div [
-                    A.style "width" "fit-content"
-                  , A.style "background" "#7ff0ff"
-                ] [
-                    H.div [
-                        flex
-                      , flexDirection row
-                      , padding 10 PX
-                      , A.style "align-content" "center"
-                      , A.style "align-items" "center"
-                    ] [
-                        H.h1 [] [
-                            H.text "Vectors"
-                        ]
-                      , H.button [
-                            height 20 PX
-                          , marginLeft 10 PX
-                          , Events.onClick NewVectorEntry
-                        ] [
-                          H.text "+"
-                        ]
-                    ]
-                  , H.div [
-                        flex
-                      , flexDirection col
-                    ] <| List.indexedMap vectorEntryNode model.vectorEntries 
-                ]
               -- Graph
               , H.div [
                     -- A.style "flex-grow" "1"
                     height (toFloat h) PX
-                  , width (toFloat <| w - 330) PX
+                  , width (toFloat <| w - notgraphsize) PX
                   , A.style "overflow" "visible"
                 ] [
                   -- TODO the whole fucking graph
@@ -555,23 +655,32 @@ view model = {
                 ]
               -- Settings Stuff
               , H.div [
-                    width 40 PX
+                    width optionsBtnWidth PX
                 ] [
                     H.div [
                         flex
                       , A.style "justify-content" "center"
                       , marginTop 10 PX
-                    ] [
-                        H.button [
-                          width 100 PC
-                        ] [
-                          H.text "<"
-                        ]
-                    ]
+                    ] (
+                        if model.showOptions then
+                          [
+                              H.div [] []
+                          ]
+                        else
+                          [
+                            H.button [
+                                width 100 PC
+                              , Events.onClick ToggleOptionsModal
+                            ] [
+                              H.text "<"
+                            ]
+                          ]
+                      )
                 ]
           ]
       ]
   }
+
 -- #endregion
 
 -- #region main declaration
