@@ -95,6 +95,9 @@ matvecmul : Matrix -> Vector -> Vector
 matvecmul ((a,c),(b,d)) (x,y) =
   (a*x+b*y, c*x+d*y)
 
+determinant : Matrix -> Float
+determinant ((a,c),(b,d)) = a * d - c * b
+
 vecadd : Vector -> Vector -> Vector
 vecadd (x1,y1) (x2,y2) = (x1+x2,y1+y2)
 
