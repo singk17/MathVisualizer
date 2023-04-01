@@ -34,6 +34,8 @@ type alias Model = {
     , effectiveMatrix : C.Matrix
     , effectiveIdx : Int
     , showOptions : Bool
+    , showGrid : Bool
+    , gap : Float
   }
 
 type Msg =  WindowResize Int Int
@@ -52,6 +54,11 @@ type Msg =  WindowResize Int Int
           | UpdateEffective Int
 
           | ToggleOptionsModal
+          | ZoomIn
+          | ZoomOut
+          | GoToHome
+          | GoToHelp
+          | ToggleGridView
 
           | Unused
 
@@ -77,7 +84,9 @@ initialModel = {
     , effectiveMatrix = C.identityMatrix
     , effectiveIdx = -1
 
-    , showOptions = False
+    , showOptions = True
+    , showGrid = True
+    , gap = 30
   }
 
 editMatrixField : C.MatrixField -> Float -> Maybe C.Matrix -> Maybe C.Matrix
@@ -137,15 +146,37 @@ update msg model =
                     case (U.elem idx model.matrixEntries |> .matrix) of
                         Just m -> m
                         Nothing -> C.identityMatrix
+        q = Debug.log "DET" <| C.determinant nEffec
       in
       ({ model | effectiveMatrix = nEffec, effectiveIdx = idx }, Cmd.none)
     ToggleOptionsModal ->
-      ({model | showOptions = not model.showOptions }, Cmd.none)
+      ({ model | showOptions = not model.showOptions }, Cmd.none)
+    ZoomIn ->
+      ({ model | gap = U.clamp 1 100 <| model.gap + 5}, Cmd.none)
+    ZoomOut ->
+      ({ model | gap = U.clamp 1 100 <| model.gap - 5}, Cmd.none)
+    ToggleGridView ->
+      ({ model | showGrid = not model.showGrid }, Cmd.none)
     _ -> (model,Cmd.none)
 
 -- #endregion
 
 -- #region Styles
+
+unselectableTags : List (H.Attribute msg)
+unselectableTags = 
+  A.style "-moz-user-select" "-moz-none" ::
+  List.map
+  (
+    \x -> A.style x "none"
+  )
+  [
+      "-khtml-user-select"
+    , "-webkit-user-select"
+    , "-o-user-select"
+    , "user-select"
+  ]
+
 flex : H.Attribute msg
 flex = A.style "display" "flex"
 
@@ -249,6 +280,151 @@ yellow = "yellow"
 -- #endregion Styles
 
 -- #region main view
+
+-- #region Icons
+plusIcon : S.Color -> S.Shape a
+plusIcon colour = 
+    S.group [ S.rectangle 20 50 |> S.filled colour
+    , S.rectangle 50 20 |> S.filled colour
+    , S.circle 10 |> S.filled colour |> S.move (0,25)
+    , S.circle 10 |> S.filled colour |> S.move (0,-25)
+    , S.circle 10 |> S.filled colour |> S.move (25,0)
+    , S.circle 10 |> S.filled colour |> S.move (-25,0)]
+
+formulaIcon : S.Color -> S.Shape a
+formulaIcon colour = S.group
+  [
+      S.roundedRect 25 23 2 |> S.outlined (S.solid 1) S.white
+        |> S.move (0, 2)
+    , S.rect 2 17 |> S.filled colour
+        |> S.move (-3, 5)
+    , S.rect 17 2 |> S.filled colour
+      |> S.move (4.5,14)
+    , S.rect 1 8 |> S.filled colour
+        |> S.rotate -30
+        |> S.move (-6, -3)
+    , S.text "X"
+        |> S.filled colour
+  ]
+
+helpIcon : S.Color -> S.Color -> S.Shape a
+helpIcon colourOne colourTwo = S.group
+  [ 
+      S.circle 18 |> S.filled colourOne
+    , S.circle 5 |> S.filled colourTwo |> S.scale 0.5 |> S.move (0,-10)
+    , S.roundedRect 10 20 5 |> S.filled colourTwo |> S.scale 0.4 |> S.move (0,-2)
+    , S.roundedRect 10 20 4 |> S.filled colourTwo |> S.scale 0.4 |> S.rotate (degrees -60) |> S.move (2,2)
+    , S.roundedRect 10 20 4 |> S.filled colourTwo |> S.scale 0.4 |> S.rotate (degrees -30) |> S.move (6,6)
+    , S.roundedRect 10 20 4 |> S.filled colourTwo |> S.scale 0.4 |> S.rotate (degrees 30) |> S.move (6,10)
+    , S.roundedRect 10 20 4 |> S.filled colourTwo |> S.scale 0.4 |> S.rotate (degrees 90) |> S.move (2,12)
+    , S.circle 5 |> S.filled colourTwo |> S.scale 0.5 |> S.move (-1,11)
+  ]
+
+zoomOutIcon : S.Color -> S.Shape a
+zoomOutIcon colour =
+  [
+      S.circle 30
+        |> S.filled colour
+        |> S.move(20,-7)
+    , S.roundedRect 10 23 5
+        |> S.filled colour
+        |> S.move(25,-30)
+        |> S.rotate(degrees -45)
+
+    , S.circle 25
+        |> S.filled S.white
+        |> S.move(20,-7)
+
+    , S.roundedRect 10 30 5
+        |> S.filled colour
+        |> S.move(-10,-20)
+        |> S.rotate(degrees 90)
+  ] |> S.group
+
+zoomInIcon : S.Color -> S.Shape a
+zoomInIcon colour =
+  [
+      S.circle 30
+        |> S.filled colour
+        |> S.move(20,-7)
+    , S.roundedRect 10 23 5
+        |> S.filled colour
+        |> S.move(25,-30)
+        |> S.rotate(degrees -45)
+
+    , S.circle 25
+        |> S.filled S.white
+        |> S.move(20,-7)
+
+    , S.roundedRect 10 30 5
+        |> S.filled colour
+        |> S.move(-10,-20)
+        |> S.rotate(degrees 90)
+    
+    , S.roundedRect 30 10 5
+        |> S.filled colour
+        |> S.move(-10,-20)
+        |> S.rotate(degrees 90)
+  ] |> S.group
+
+deleteIcon : S.Color -> S.Shape a
+deleteIcon colour = S.group
+  [
+      S.rect 17 25 |> S.outlined (S.solid 2) colour
+    , S.rect 1 13 |> S.filled colour
+        |> S.move (-3,0)
+    , S.rect 1 13 |> S.filled colour
+        |> S.move (3,0)
+    , S.rect 17 2 |> S.filled colour
+        |> S.rotate 25
+        |> S.move (0,15.5)
+    , S.rect 14 2 |> S.filled colour
+        |> S.rotate 25
+        |> S.move (0,16.5)
+  ]
+
+homeIcon : S.Color -> S.Color -> S.Shape a
+homeIcon colourOne colourTwo = S.group
+  [
+      S.circle 18 |> S.filled colourOne
+    , S.square 10 |> S.filled colourTwo |> S.scale 1.5 |> S.move (0,-2)
+    , S.triangle 10 |> S.filled colourTwo |> S.scale 0.75 |> S.rotate (degrees 90) |> S.move (0,10) |> S.scaleY 0.7 |> S.scaleX 1.75
+  ]
+
+gridIcon : S.Color -> S.Shape a
+gridIcon color = S.group [
+      S.line (0,-10) (0,10) |> S.outlined (S.solid 1) color
+    , S.line (5, -10) (5,10) |> S.outlined (S.solid 1) color
+    , S.line (-5, -10) (-5,10) |> S.outlined (S.solid 1) color
+    
+    , S.line (-10,0) (10,0) |> S.outlined (S.solid 1) color
+    , S.line (-10,5) (10,5) |> S.outlined (S.solid 1) color
+    , S.line (-10,-5) (10,-5) |> S.outlined (S.solid 1) color
+  ]
+
+noGridIcon : S.Color -> S.Color -> S.Shape a
+noGridIcon crcolor gcolor = S.group [
+        gridIcon gcolor
+      , S.line (-10,-10) (10,10) |> S.outlined (S.solid 4) crcolor
+      , S.line (-10,10) (10,-10) |> S.outlined (S.solid 4) crcolor
+  ]
+
+{-
+cross colour = plus colour |> rotate (degrees 45)
+
+pluss c1 c2 = group [plus c1, plus c2 |> scaleX 0.9 |> scaleY 0.9]
+crosss c1 c2 = group [cross c1, cross c2 |> scaleX 0.9 |> scaleY 0.9]
+-}
+
+
+-- #endregion
+
+iconModel = Widget.init 50 50 "IconTop" |> Tuple.first
+
+createIcon : S.Shape Msg -> H.Html Msg
+createIcon s = Widget.view iconModel [s]
+
+iconStyles = [ width 25 PX, height 25 PX ]
 
 svgTitle = "Matrix Visualizer SVG Top"
 vOutput = Widget.init 500 900 svgTitle
@@ -441,25 +617,23 @@ createMatrixSelectionOptions selected entries =
     )
   <| List.filter (.name >> (/=) Nothing) <| List.filter (.matrix >> (/=) Nothing) entries
 
-gap = 30
+arrow : Float -> S.Shape a
+arrow gap = S.openPolygon [ (-gap,0), (0,0), (0,-gap) ] |> S.outlined (S.solid 4) S.red |> S.rotate (degrees <| -45)
 
-arrow : S.Shape a
-arrow = S.openPolygon [ (-gap,0), (0,0), (0,-gap) ] |> S.outlined (S.solid 4) S.red |> S.rotate (degrees <| -45)
-
-createVectorEntries : List (VectorEntry) -> C.Matrix -> S.Shape a
-createVectorEntries ves eff =
+createVectorEntries : Model -> S.Shape a
+createVectorEntries model =
   let
-    actualVectors = List.filter (.vector >> (/=) Nothing) ves
+    actualVectors = List.filter (.vector >> (/=) Nothing) model.vectorEntries
   in
   List.map
     (
       \v ->
         let
           vec = U.enforceJust v.vector
-          scVec = C.vecscale gap vec |> C.matvecmul eff
+          scVec = C.vecscale model.gap vec |> C.matvecmul model.effectiveMatrix
           theta = case (C.toPolar scVec) of C.Polar r the -> the
           nam = if v.name == Nothing then "" else U.enforceJust v.name
-          head = if ((==) (0,0) <| scVec) then S.circle 6 |> S.filled S.red else arrow |> S.rotate theta |> S.move scVec
+          head = if ((==) (0,0) <| scVec) then S.circle 6 |> S.filled S.red else arrow 10 |> S.rotate theta |> S.move scVec
         in
         S.group [
             S.line (0,0) scVec |> S.outlined (S.solid 4) S.red
@@ -470,19 +644,17 @@ createVectorEntries ves eff =
   actualVectors
   |> S.group
 
-createHorLine : Float -> C.Matrix -> Int -> S.Shape a
-createHorLine yhalf eff pos =
+createHorLine : Float -> C.Matrix -> Float -> S.Shape a
+createHorLine yhalf eff x =
   let
-    x = toFloat pos |> (*) gap
     p1 = (x,-yhalf) |> C.matvecmul eff
     p2 = (x,yhalf) |> C.matvecmul eff
   in
   S.line p1 p2 |> S.outlined (S.solid 2) S.black
 
-createVerticalLine : Float -> C.Matrix -> Int -> S.Shape a
-createVerticalLine xhalf eff pos =
+createVerticalLine : Float -> C.Matrix -> Float -> S.Shape a
+createVerticalLine xhalf eff y =
   let
-    y = toFloat pos |> (*) gap
     p1 = (-xhalf,y) |> C.matvecmul eff
     p2 = (xhalf,y) |> C.matvecmul eff
   in
@@ -492,24 +664,42 @@ graphView : Model -> List (S.Shape a)
 graphView model =
   let
     (ww,wh) = model.windowSize
-    (w,h) = (ww-notgraphsize,wh)
+    (w,h) = (ww - notgraphsize,wh)
+
+    -- y axis S.lines
+    ((a,c),(b,d)) = model.effectiveMatrix
+    mx = c/a
+    my = b/d
+
+    stooo = (\x -> x ^ 2 ) <| U.actMax <| List.map abs [ a, b, c, d ]
+
     xHalf = (w // 2)
-    xUH = xHalf |> toFloat |> \x -> x / gap |> ceiling |> (+) 7
-    xOHalf = xUH * gap |> toFloat
+    fXHalf = xHalf |> toFloat
+    xUH = xHalf |> toFloat |> \x -> x / model.gap |> (*) stooo |> ceiling |> (+) 30 |> Debug.log "NUMX"
+    xOHalf = xUH |> toFloat |> (*) model.gap
     yHalf = (h // 2)
-    yUH = yHalf |> toFloat |> \y -> y / gap |> ceiling |> (+) 7
-    yOHalf = yUH * gap |> toFloat
+    fYHalf = toFloat yHalf
+    yUH = yHalf |> toFloat |> \y -> y / model.gap |> (*) stooo |> ceiling |> (+) 30 |> Debug.log "NUMY"
+    yOHalf = yUH |> toFloat |> (*) model.gap
   in
+  (
+    if model.showGrid then
+      [
+          S.makeTransparent 0.4 <| S.group <| List.map
+          (toFloat >> (*) model.gap >> createHorLine yOHalf model.effectiveMatrix)
+          <| List.range (-xUH) xUH
+        , S.makeTransparent 0.4 <| S.group <| List.map
+          (toFloat >> (*) model.gap >> createVerticalLine yOHalf model.effectiveMatrix)
+          <| List.range (-yUH) yUH
+      ]
+    else
+      []
+  ) ++
   [
-      S.makeTransparent 0.4 <| S.group <| List.map
-        (createHorLine yOHalf model.effectiveMatrix)
-        <| List.range (-xUH) xUH
-    , createHorLine yOHalf model.effectiveMatrix 0
-    , S.makeTransparent 0.4 <| S.group <| List.map
-        (createVerticalLine yOHalf model.effectiveMatrix)
-        <| List.range (-yUH) yUH
+
+      createHorLine yOHalf model.effectiveMatrix 0
     , createVerticalLine xOHalf model.effectiveMatrix 0
-    , createVectorEntries model.vectorEntries model.effectiveMatrix
+    , createVectorEntries model
   ]
 
 view : Model -> Browser.Document Msg
@@ -529,7 +719,7 @@ view model = {
               , numStyle "maxWidth" 100 VW
               , A.style "overflow" "hidden"
           ] [
-                -- Input stuff
+                -- #region Input stuff
                 H.div [
                     flex
                   , flexDirection col
@@ -565,7 +755,7 @@ view model = {
                                   , marginLeft 10 PX
                                   , Events.onClick NewMatrixEntry
                                 ] [
-                                  H.text "+"
+                                  Widget.view iconModel [ plusIcon S.red ]
                                 ]
                             ]
                           , H.div [
@@ -602,7 +792,7 @@ view model = {
                                   , marginLeft 10 PX
                                   , Events.onClick NewVectorEntry
                                 ] [
-                                  H.text "+"
+                                  Widget.view iconModel [ plusIcon S.red ]
                                 ]
                             ]
                           , H.div [
@@ -619,13 +809,13 @@ view model = {
                       , A.style "max-width" "100%"
                       , A.style "flex" "1"
                     ] [
-                        H.div [
+                        H.div ([
                             margin 10 PX
                           , flex
                           , flexDirection col
                           , A.style "justify-content" "center"
                           , A.style "align-items" "center"
-                        ] [
+                        ] ++ unselectableTags) [
                               H.h3 [ A.style "text-align" "center" ] [
                                 H.text "Effective Matrix:"
                               ]
@@ -642,8 +832,9 @@ view model = {
                         ]
                     ]
                 ]
-              
-              -- Graph
+                -- #endregion
+
+                -- #region Graph
               , H.div [
                     -- A.style "flex-grow" "1"
                     height (toFloat h) PX
@@ -653,7 +844,9 @@ view model = {
                   -- TODO the whole fucking graph
                   Widget.viewCustom Widget.defaultViewOption widgetModel (graphView model)
                 ]
-              -- Settings Stuff
+                -- #endregion
+
+                -- #region Settings Stuff
               , H.div [
                     width optionsBtnWidth PX
                 ] [
@@ -664,7 +857,65 @@ view model = {
                     ] (
                         if model.showOptions then
                           [
-                              H.div [] []
+                              H.div [
+                                  A.style "position" "fixed"
+                                , A.style "top" "20px"
+                                , A.style "right" "10px"
+                                , width 50 PX
+                                , height 440 PX
+                                , flex
+                                , flexDirection col
+                                , A.style "justify-content" "space-between"
+                              ]
+                              [
+                                  H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                    , Events.onClick ToggleOptionsModal
+                                  ] [ 
+                                      createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, S.rect 30 5 |>  S.filled S.blue ]
+                                  ]
+                                , H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                    , Events.onClick ZoomIn
+                                  ] [
+                                    createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomInIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
+                                  ]
+                                , H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                    , Events.onClick ZoomOut
+                                  ] [ 
+                                      createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomOutIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
+                                  ]
+                                , H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                  ] [ 
+                                      createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, helpIcon S.white S.blue |> S.move (-1,0) ]
+                                  ]
+                                , H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                  ] [ 
+                                      createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, homeIcon S.white S.blue ]
+                                  ]
+
+                                , H.div [
+                                      A.style "cursor" "pointer"
+                                    , width 50 PX
+                                    , height 50 PX
+                                    , Events.onClick ToggleGridView
+                                  ] [
+                                      createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, (if model.showGrid then gridIcon S.blue else noGridIcon S.red S.blue) ]
+                                  ]
+                              ]
                           ]
                         else
                           [
@@ -677,6 +928,7 @@ view model = {
                           ]
                       )
                 ]
+                -- #endregion
           ]
       ]
   }
