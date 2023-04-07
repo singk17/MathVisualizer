@@ -9,7 +9,7 @@ import GraphicSVG as S
 import GraphicSVG.Widget as Widget 
 
 import Core as C
-import MVCore exposing(..)
+import MVCore as EC
 import Views exposing(..)
 import Utils as U
 
@@ -26,7 +26,7 @@ optionsBtnWidth = 40
 notgraphsize = 2 * inputSectionWidth + optionsBtnWidth
 
 
-matrixEntryNode : Int -> MatrixEntry -> H.Html Msg
+matrixEntryNode : Int -> EC.MatrixEntry -> H.Html EC.Msg
 matrixEntryNode idx ma =
   let
     wma = ma.matrix /= Nothing
@@ -56,9 +56,9 @@ matrixEntryNode idx ma =
             , A.type_ "text"
             , A.placeholder "Name"
             , padding 4 PX
-            , Events.onInput (EditMatrixName idx)
+            , Events.onInput (EC.EditMatrixName idx)
           ] ++ (if nma then [ A.value na ] else [])) []
-        , H.button [ Events.onClick <| DeleteMatrixEntry idx ] [H.text "x"]
+        , H.button [ Events.onClick <| EC.DeleteMatrixEntry idx ] [H.text "x"]
       ]
     , H.div [
           flex
@@ -85,7 +85,7 @@ matrixEntryNode idx ma =
                     H.input ([
                         A.type_ "number"
                       , A.placeholder n
-                      , Events.onInput (U.toFloat >> EditMatrixFloat idx f)
+                      , Events.onInput (U.toFloat >> EC.EditMatrixFloat idx f)
                     ] ++ (if wma then [ A.value <| String.fromFloat <| C.getMatrixField f mat ] else []))
                     []
                 )
@@ -100,7 +100,7 @@ matrixEntryNode idx ma =
       ]
   ]
 
-vectorEntryNode : Int -> VectorEntry -> H.Html Msg
+vectorEntryNode : Int -> EC.VectorEntry -> H.Html EC.Msg
 vectorEntryNode idx va =
   let
     nma = va.name /= Nothing
@@ -130,9 +130,9 @@ vectorEntryNode idx va =
             , A.type_ "text"
             , A.placeholder "Name"
             , padding 4 PX
-            , Events.onInput (EditVectorName idx)
+            , Events.onInput (EC.EditVectorName idx)
           ] ++ (if nma then [ A.value na ] else [])) []
-        , H.button [ Events.onClick <| DeleteVectorEntry idx ] [ H.text "x" ]
+        , H.button [ Events.onClick <| EC.DeleteVectorEntry idx ] [ H.text "x" ]
       ]
     , H.div [
               A.style "background" "#7ff0ff"
@@ -179,7 +179,7 @@ vectorEntryNode idx va =
                     H.input ([
                         A.type_ "number"
                       , A.placeholder n
-                      , Events.onInput (U.toFloat >> EditVectorFloat idx f)
+                      , Events.onInput (U.toFloat >> EC.EditVectorFloat idx f)
                     ] ++ (if vma then [ A.value <| String.fromFloat <| C.getVectorField f vec ] else []))
                     []
                 )
@@ -194,7 +194,7 @@ vectorEntryNode idx va =
       ]
   ]
 
-createMatrixSelectionOptions : Int -> List MatrixEntry -> List (H.Html Msg)
+createMatrixSelectionOptions : Int -> List EC.MatrixEntry -> List (H.Html EC.Msg)
 createMatrixSelectionOptions selected entries = 
   List.indexedMap
     ( \idx v ->
@@ -209,7 +209,7 @@ createMatrixSelectionOptions selected entries =
 arrow : Float -> S.Shape a
 arrow gap = S.openPolygon [ (-gap,0), (0,0), (0,-gap) ] |> S.outlined (S.solid 4) S.red |> S.rotate (degrees <| -45)
 
-createVectorEntries : Model -> S.Shape a
+createVectorEntries : EC.Model -> S.Shape a
 createVectorEntries model =
   let
     actualVectors = List.filter (.vector >> (/=) Nothing) model.vectorEntries
@@ -249,7 +249,7 @@ createVerticalLine xhalf eff y =
   in
   S.line p1 p2 |> S.outlined (S.solid 2) S.black
 
-graphView : Model -> List (S.Shape a)
+graphView : EC.Model -> List (S.Shape a)
 graphView model =
   let
     (ww,wh) = model.windowSize
@@ -293,7 +293,7 @@ graphView model =
     , createVectorEntries model
   ]
 
-view : Model -> Browser.Document Msg
+view : EC.Model -> Browser.Document EC.Msg
 view model = {
       title = "Matrix Visualizer"
     , body =
@@ -378,7 +378,7 @@ view model = {
                               , H.button [
                                     height 20 PX
                                   , marginLeft 10 PX
-                                  , Events.onClick NewMatrixEntry
+                                  , Events.onClick EC.NewMatrixEntry
                                 ] [
                                   Widget.view iconModel [ plusIcon S.red ]
                                 ]
@@ -415,7 +415,7 @@ view model = {
                               , H.button [
                                     height 20 PX
                                   , marginLeft 10 PX
-                                  , Events.onClick NewVectorEntry
+                                  , Events.onClick EC.NewVectorEntry
                                 ] [
                                   Widget.view iconModel [ plusIcon S.red ]
                                 ]
@@ -448,7 +448,7 @@ view model = {
                             , H.div [] [
                                 H.select [
                                     width 120 PX
-                                  , Events.onInput (String.toInt >> U.enforceJust >> UpdateEffective)
+                                  , Events.onInput (String.toInt >> U.enforceJust >> EC.UpdateEffective)
                                   , A.style "font-size" "18px"
                                 ]
                                 <|  H.option [ A.value "-1" ] [ H.text "---" ]
@@ -498,7 +498,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick ToggleOptionsModal
+                                    , Events.onClick EC.ToggleOptionsModal
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, collapseIcon S.blue ]
                                   ]
@@ -506,7 +506,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick ZoomIn
+                                    , Events.onClick EC.ZoomIn
                                   ] [
                                     createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomInIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
                                   ]
@@ -514,23 +514,25 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick ZoomOut
+                                    , Events.onClick EC.ZoomOut
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomOutIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
                                   ]
-                                , H.div [
+                                , H.a [
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick (SwitchPage Help)
+                                    --, Events.onClick (SwitchPage Help)
+                                    , A.href "/help"
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, helpIcon S.white S.blue |> S.move (-1,0) ]
                                   ]
-                                , H.div [
+                                , H.a [
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick (SwitchPage Home)
+                                    --, Events.onClick (SwitchPage Home)
+                                    , A.href "/"
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, homeIcon S.white S.blue ]
                                   ]
@@ -539,7 +541,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick ToggleGridView
+                                    , Events.onClick EC.ToggleGridView
                                   ] [
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, (if model.showGrid then gridIcon S.blue else noGridIcon S.red S.blue) ]
                                   ]
@@ -551,7 +553,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width (iS-15) PX
                                     , height (iS-15) PX
-                                    , Events.onClick ToggleOptionsModal
+                                    , Events.onClick EC.ToggleOptionsModal
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, collapseIcon S.blue |> S.rotate (degrees 180) ]
                                   ]

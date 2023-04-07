@@ -2,15 +2,14 @@ module Home exposing (..)
 
 import Html as H
 import Html.Attributes as A
-import Html.Events as Events
 import Browser
 
 import GraphicSVG as S
 
-import MVCore exposing(..)
+import MVCore as EC
 import Views exposing(..)
 
-view : Model -> Browser.Document Msg
+view : EC.Model -> Browser.Document EC.Msg
 view model = {
       title = "Matrix Visualizer"
     , body =
@@ -80,11 +79,12 @@ view model = {
                               , flexDirection col
                               , A.style "justify-content" "center"
                             ] [
-                              H.div [
+                              H.a [
                                   width iS PX
                                 , height iS PX
                                 , A.style "cursor" "pointer"
-                                , Events.onClick (SwitchPage Help)
+                                , A.href "/help"
+                                --, Events.onClick (EC.SwitchPage EC.Help)
                               ] [
                                   createIcon <| S.group <| [ S.circle 20 |> S.filled S.white |> S.addOutline (S.solid 3) S.pink, helpIcon S.white S.pink |> S.move (-1.3,0) ]
                               ]

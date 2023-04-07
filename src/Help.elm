@@ -8,7 +8,7 @@ import Browser
 import GraphicSVG as S
 
 import Views exposing(..)
-import MVCore exposing (..)
+import MVCore as EC
 
 script : List String
 script = [
@@ -24,7 +24,7 @@ script = [
   ]
 
 
-view : Model -> Browser.Document Msg
+view : EC.Model -> Browser.Document EC.Msg
 view model = {
       title = "Matrix Visualizer"
     , body = 
@@ -101,7 +101,7 @@ view model = {
                         H.div [
                             width iS PX
                           , height iS PX
-                          , Events.onClick (SwitchPage Home)
+                          , Events.onClick (EC.SwitchPage EC.Home)
                           , A.style "cursor" "pointer"
                         ] [
                           createIcon <| S.group [ S.circle 20 |> S.filled S.white |> S.addOutline (S.solid 3) S.pink, homeIcon S.white S.pink ]

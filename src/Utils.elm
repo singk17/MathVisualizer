@@ -1,7 +1,4 @@
 module Utils exposing (..)
-import Html exposing (a)
-import Html exposing (b)
-import Html exposing (li)
 
 clamp : comparable -> comparable -> comparable -> comparable
 clamp mi ma v = max mi v |> min ma

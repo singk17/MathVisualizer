@@ -6,7 +6,7 @@ import Html.Attributes as A
 import GraphicSVG as S
 import GraphicSVG.Widget as Widget
 
-import MVCore exposing(..)
+import MVCore as EC
 
 -- #region Styles
 
@@ -60,61 +60,61 @@ unity s u =
   in
   (String.fromFloat s) ++ un
 
-numStyle : String -> Float -> Units -> H.Attribute Msg
+numStyle : String -> Float -> Units -> H.Attribute EC.Msg
 numStyle t s u = unity s u |> A.style t
 
-height : Float -> Units -> H.Attribute Msg
+height : Float -> Units -> H.Attribute EC.Msg
 height s u = numStyle "height" s u
 
-width : Float -> Units -> H.Attribute Msg
+width : Float -> Units -> H.Attribute EC.Msg
 width s u = numStyle "width" s u
 
-margin : Float -> Units -> H.Attribute Msg
+margin : Float -> Units -> H.Attribute EC.Msg
 margin s u = numStyle "margin" s u
 
-marginLeft : Float -> Units -> H.Attribute Msg
+marginLeft : Float -> Units -> H.Attribute EC.Msg
 marginLeft s u = numStyle "margin-left" s u
 
-marginRight : Float -> Units -> H.Attribute Msg
+marginRight : Float -> Units -> H.Attribute EC.Msg
 marginRight s u = numStyle "margin-right" s u
 
-marginTop : Float -> Units -> H.Attribute Msg
+marginTop : Float -> Units -> H.Attribute EC.Msg
 marginTop s u = numStyle "margin-top" s u
 
-marginBottom : Float -> Units -> H.Attribute Msg
+marginBottom : Float -> Units -> H.Attribute EC.Msg
 marginBottom s u = numStyle "margin-bottom" s u
 
-padding : Float -> Units -> H.Attribute Msg
+padding : Float -> Units -> H.Attribute EC.Msg
 padding s u = numStyle "padding" s u
 
-paddingLeft : Float -> Units -> H.Attribute Msg
+paddingLeft : Float -> Units -> H.Attribute EC.Msg
 paddingLeft s u = numStyle "padding-left" s u
 
-paddingRight : Float -> Units -> H.Attribute Msg
+paddingRight : Float -> Units -> H.Attribute EC.Msg
 paddingRight s u = numStyle "padding-right" s u
 
-paddingTop : Float -> Units -> H.Attribute Msg
+paddingTop : Float -> Units -> H.Attribute EC.Msg
 paddingTop s u = numStyle "padding-top" s u
 
-paddingBottom : Float -> Units -> H.Attribute Msg
+paddingBottom : Float -> Units -> H.Attribute EC.Msg
 paddingBottom s u = numStyle "padding-bottom" s u
 
 borderStyle : Float -> Units -> String -> String -> String
 borderStyle s u t c = (unity s u) ++ " " ++ t ++ " " ++ c
 
-border : Float -> Units -> String -> String -> H.Attribute Msg
+border : Float -> Units -> String -> String -> H.Attribute EC.Msg
 border s u t c = borderStyle s u t c |> A.style "border"
 
-borderTop : Float -> Units -> String -> String -> H.Attribute Msg
+borderTop : Float -> Units -> String -> String -> H.Attribute EC.Msg
 borderTop s u t c = borderStyle s u t c |> A.style "border-top"
 
-borderBottom : Float -> Units -> String -> String -> H.Attribute Msg
+borderBottom : Float -> Units -> String -> String -> H.Attribute EC.Msg
 borderBottom s u t c = borderStyle s u t c |> A.style "border-bottom"
 
-borderLeft : Float -> Units -> String -> String -> H.Attribute Msg
+borderLeft : Float -> Units -> String -> String -> H.Attribute EC.Msg
 borderLeft s u t c = borderStyle s u t c |> A.style "border-left"
 
-borderRight : Float -> Units -> String -> String -> H.Attribute Msg
+borderRight : Float -> Units -> String -> String -> H.Attribute EC.Msg
 borderRight s u t c = borderStyle s u t c |> A.style "border-right"
 
 solid = "solid"
@@ -279,7 +279,7 @@ collapseIcon color = S.group [
 
 iconModel = Widget.init 50 50 "IconTop" |> Tuple.first
 
-createIcon : S.Shape Msg -> H.Html Msg
+createIcon : S.Shape EC.Msg -> H.Html EC.Msg
 createIcon s = Widget.view iconModel [s]
 
 iconStyles = [ width 25 PX, height 25 PX ]
