@@ -3,7 +3,7 @@ module Graph exposing (..)
 import Browser
 import Html as H
 import Html.Attributes as A
-import Html.Events as Events
+import Html.Events as HEvents
 
 import GraphicSVG as S
 import GraphicSVG.Widget as Widget 
@@ -11,6 +11,7 @@ import GraphicSVG.Widget as Widget
 import Core as C
 import MVCore as EC
 import Views exposing(..)
+import Views as V
 import Utils as U
 
 -- #region main view
@@ -56,9 +57,26 @@ matrixEntryNode idx ma =
             , A.type_ "text"
             , A.placeholder "Name"
             , padding 4 PX
-            , Events.onInput (EC.EditMatrixName idx)
+            , HEvents.onInput (EC.EditMatrixName idx)
           ] ++ (if nma then [ A.value na ] else [])) []
-        , H.button [ Events.onClick <| EC.DeleteMatrixEntry idx ] [H.text "x"]
+        , H.div [
+            width 40 PX 
+          , height 25 PX
+          , flex
+          , A.style "justify-content" "center"
+          , A.style "align-items" "center"
+          , marginLeft 10 PX
+          , HEvents.onClick <| EC.DeleteMatrixEntry idx
+          , A.style "cursor" "pointer"
+          , A.style "background" "white"
+        ] [
+            H.div [
+                height 20 PX
+              , width 20 PX
+            ] [
+              createIcon <| S.group [ plusIcon S.red |> S.rotate (degrees 45) ]
+            ]
+        ]
       ]
     , H.div [
           flex
@@ -69,9 +87,9 @@ matrixEntryNode idx ma =
           H.div [
               width 10 PX
             , A.style "align-self" "strech"
-            , borderTop 3 PX solid black
-            , borderBottom 3 PX solid black
-            , borderLeft 6 PX solid black
+            , borderTop 3 PX V.solid V.black
+            , borderBottom 3 PX V.solid V.black
+            , borderLeft 6 PX V.solid V.black
           ] []
         , H.div [
               margin 4 PX
@@ -85,7 +103,7 @@ matrixEntryNode idx ma =
                     H.input ([
                         A.type_ "number"
                       , A.placeholder n
-                      , Events.onInput (U.toFloat >> EC.EditMatrixFloat idx f)
+                      , HEvents.onInput (U.toFloat >> EC.EditMatrixFloat idx f)
                     ] ++ (if wma then [ A.value <| String.fromFloat <| C.getMatrixField f mat ] else []))
                     []
                 )
@@ -93,9 +111,9 @@ matrixEntryNode idx ma =
         ,  H.div [
               width 10 PX
             , A.style "align-self" "strech"
-            , borderTop 3 PX solid black
-            , borderBottom 3 PX solid black
-            , borderRight 6 PX solid black
+            , borderTop 3 PX V.solid V.black
+            , borderBottom 3 PX V.solid V.black
+            , borderRight 6 PX V.solid V.black
           ] []
       ]
   ]
@@ -130,9 +148,26 @@ vectorEntryNode idx va =
             , A.type_ "text"
             , A.placeholder "Name"
             , padding 4 PX
-            , Events.onInput (EC.EditVectorName idx)
+            , HEvents.onInput (EC.EditVectorName idx)
           ] ++ (if nma then [ A.value na ] else [])) []
-        , H.button [ Events.onClick <| EC.DeleteVectorEntry idx ] [ H.text "x" ]
+        , H.div [
+            width 40 PX 
+          , height 25 PX
+          , flex
+          , A.style "justify-content" "center"
+          , A.style "align-items" "center"
+          , marginLeft 10 PX
+          , HEvents.onClick <| EC.DeleteVectorEntry idx
+          , A.style "cursor" "pointer"
+          , A.style "background" "white"
+        ] [
+            H.div [
+                height 20 PX
+              , width 20 PX
+            ] [
+              createIcon <| S.group [ plusIcon S.red |> S.rotate (degrees 45) ]
+            ]
+        ]
       ]
     , H.div [
               A.style "background" "#7ff0ff"
@@ -163,9 +198,9 @@ vectorEntryNode idx va =
           H.div [
               width 10 PX
             , A.style "align-self" "strech"
-            , borderTop 3 PX solid black
-            , borderBottom 3 PX solid black
-            , borderLeft 6 PX solid black
+            , borderTop 3 PX V.solid V.black
+            , borderBottom 3 PX V.solid V.black
+            , borderLeft 6 PX V.solid V.black
           ] []
         , H.div [
               margin 4 PX
@@ -179,7 +214,7 @@ vectorEntryNode idx va =
                     H.input ([
                         A.type_ "number"
                       , A.placeholder n
-                      , Events.onInput (U.toFloat >> EC.EditVectorFloat idx f)
+                      , HEvents.onInput (U.toFloat >> EC.EditVectorFloat idx f)
                     ] ++ (if vma then [ A.value <| String.fromFloat <| C.getVectorField f vec ] else []))
                     []
                 )
@@ -187,9 +222,9 @@ vectorEntryNode idx va =
         ,  H.div [
               width 10 PX
             , A.style "align-self" "strech"
-            , borderTop 3 PX solid black
-            , borderBottom 3 PX solid black
-            , borderRight 6 PX solid black
+            , borderTop 3 PX V.solid V.black
+            , borderBottom 3 PX V.solid V.black
+            , borderRight 6 PX V.solid V.black
           ] []
       ]
   ]
@@ -372,16 +407,36 @@ view model = {
                               , A.style "align-items" "center"
                               , A.style "justify-content" "space-between"
                             ] [
-                                H.h1 [] [
-                                    H.text "Matrices"
-                                ]
-                              , H.button [
-                                    height 20 PX
-                                  , marginLeft 10 PX
-                                  , Events.onClick EC.NewMatrixEntry
-                                ] [
-                                  Widget.view iconModel [ plusIcon S.red ]
-                                ]
+                                  H.h1 [] [
+                                      H.text "Matrices"
+                                  ]
+
+                                , H.div [
+                                      width 40 PX 
+                                    , height 25 PX
+                                    , flex
+                                    , A.style "justify-content" "center"
+                                    , A.style "align-items" "center"
+                                    , marginLeft 10 PX
+                                    , HEvents.onClick EC.NewMatrixEntry
+                                    , A.style "cursor" "pointer"
+                                    , A.style "background" "white"
+                                  ] [
+                                      H.div [
+                                          height 20 PX
+                                        , width 20 PX
+                                      ] [
+                                        createIcon <| S.group [ plusIcon S.blue ]
+                                      ]
+                                  ]
+
+                                -- , H.button [
+                                --       height 20 PX
+                                --     , marginLeft 10 PX
+                                --     , HEvents.onClick EC.NewMatrixEntry
+                                --   ] [
+                                --     Widget.view iconModel [ plusIcon S.red ]
+                                --   ]
                             ]
                           , H.div [
                                 flex
@@ -412,13 +467,24 @@ view model = {
                                 H.h1 [] [
                                     H.text "Vectors"
                                 ]
-                              , H.button [
-                                    height 20 PX
-                                  , marginLeft 10 PX
-                                  , Events.onClick EC.NewVectorEntry
-                                ] [
-                                  Widget.view iconModel [ plusIcon S.red ]
-                                ]
+                              , H.div [
+                                      width 40 PX 
+                                    , height 25 PX
+                                    , flex
+                                    , A.style "justify-content" "center"
+                                    , A.style "align-items" "center"
+                                    , marginLeft 10 PX
+                                    , HEvents.onClick EC.NewVectorEntry
+                                    , A.style "cursor" "pointer"
+                                    , A.style "background" "white"
+                                  ] [
+                                      H.div [
+                                          height 20 PX
+                                        , width 20 PX
+                                      ] [
+                                        createIcon <| S.group [ plusIcon S.blue ]
+                                      ]
+                                  ]
                             ]
                           , H.div [
                                 flex
@@ -448,7 +514,7 @@ view model = {
                             , H.div [] [
                                 H.select [
                                     width 120 PX
-                                  , Events.onInput (String.toInt >> U.enforceJust >> EC.UpdateEffective)
+                                  , HEvents.onInput (String.toInt >> U.enforceJust >> EC.UpdateEffective)
                                   , A.style "font-size" "18px"
                                 ]
                                 <|  H.option [ A.value "-1" ] [ H.text "---" ]
@@ -498,7 +564,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick EC.ToggleOptionsModal
+                                    , HEvents.onClick EC.ToggleOptionsModal
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, collapseIcon S.blue ]
                                   ]
@@ -506,7 +572,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick EC.ZoomIn
+                                    , HEvents.onClick EC.ZoomIn
                                   ] [
                                     createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomInIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
                                   ]
@@ -514,7 +580,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick EC.ZoomOut
+                                    , HEvents.onClick EC.ZoomOut
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, zoomOutIcon S.blue |> S.scale 0.4 |> S.move (-7,4) ]
                                   ]
@@ -541,7 +607,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width iS PX
                                     , height iS PX
-                                    , Events.onClick EC.ToggleGridView
+                                    , HEvents.onClick EC.ToggleGridView
                                   ] [
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, (if model.showGrid then gridIcon S.blue else noGridIcon S.red S.blue) ]
                                   ]
@@ -553,7 +619,7 @@ view model = {
                                       A.style "cursor" "pointer"
                                     , width (iS-15) PX
                                     , height (iS-15) PX
-                                    , Events.onClick EC.ToggleOptionsModal
+                                    , HEvents.onClick EC.ToggleOptionsModal
                                   ] [ 
                                       createIcon <| S.group [ S.circle 23 |> S.filled S.white |> S.addOutline (S.solid 2.2) S.blue, collapseIcon S.blue |> S.rotate (degrees 180) ]
                                   ]

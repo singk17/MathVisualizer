@@ -3,7 +3,7 @@ module Resources exposing (..)
 import Browser
 import Html as H
 import Html.Attributes as A
-import Html.Events as Events
+import Html.Events as HEvents
 
 import GraphicSVG as S
 
@@ -123,7 +123,7 @@ view model = {
                         H.div [
                             width iS PX
                           , height iS PX
-                          , Events.onClick (EC.SwitchPage EC.Home)
+                          , HEvents.onClick (EC.SwitchPage EC.Home)
                           , A.style "cursor" "pointer"
                         ] [
                           createIcon <| S.group [ S.circle 20 |> S.filled S.white |> S.addOutline (S.solid 3) S.pink, homeIcon S.white S.pink ]

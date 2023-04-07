@@ -24,7 +24,6 @@ import Svg.Attributes as SA
 import Core as C
 import Utils as U
 import MVCore as EC
-import Views exposing(..)
 import Graph as GraphPage
 import Home as HomePage
 import Help as HelpPage
